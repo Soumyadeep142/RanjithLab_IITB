@@ -1,5 +1,8 @@
 #include <iostream>
 #include <cmath>
+#include <ctime>
+#include <cstdlib>
+
 int main()
 {
  int i;
@@ -8,12 +11,12 @@ int main()
  int hi=25;
  int base=10;
  int j;
- for (i=1; i<11; i++)
+ for (i=1; i<21; i++)
  {
-  for (j=1; j<51; j++)
+  for (j=1; j<1001; j++)
   {
   int atoms=i*base;
-  sprintf(file_name, "polymer_data_%d_%d.txt", atoms, j);
+  sprintf(file_name, "initial_config/polymer_data_%d_%d.txt", atoms, j);
   FILE *f = fopen(file_name, "w");
   if (!f) {
     printf("Failed to create file: %s\n", file_name);
@@ -25,13 +28,11 @@ int main()
 
   // Number of atoms, bonds, and angles
   fprintf(f, "%d atoms\n", atoms);
-  fprintf(f, "%d bonds\n", atoms - 1);
-  fprintf(f, "%d angles\n\n", atoms - 2);
+  fprintf(f, "%d bonds\n\n", atoms - 1);
 
   // Number of atom types, bond types, and angle types
   fprintf(f, "1 atom types\n");
-  fprintf(f, "1 bond types\n");
-  fprintf(f, "1 angle types\n\n");
+  fprintf(f, "1 bond types\n\n");
 
   // Box dimensions
   fprintf(f, "%d %d xlo xhi\n", low, hi);
@@ -44,6 +45,7 @@ int main()
 
   // Atoms section
   fprintf(f, "Atoms\n\n");
+  srand(time(0));
   for (int a = 1; a <= atoms; a++) {
     double th = (rand() / (double)RAND_MAX)*M_PI;
     double phi =(rand() / (double)RAND_MAX)*2*M_PI;
@@ -58,12 +60,6 @@ int main()
   fprintf(f, "\nBonds\n\n");
   for (int b = 1; b < atoms; b++) {
     fprintf(f, "%d 1 %d %d\n", b, b, b + 1);
-   }
-
-  // Angles section
-  fprintf(f, "\nAngles\n\n");
-  for (int ang = 1; ang < atoms - 1; ang++) {
-    fprintf(f, "%d 1 %d %d %d\n", ang, ang, ang + 1, ang + 2);
    }
 
   // Close the file

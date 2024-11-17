@@ -9,13 +9,14 @@ int main() {
 
     std::vector<double> means_final; // Empty array to store means
     std::vector<double>iter;
-    for (int i = 10; i <= 100; i=i+10) { // Outer loop for the first number
+    for (int i = 10; i <= 200; i=i+10) { // Outer loop for the first number
         std::vector<double> means; // Empty array to store means
         double mean_of_means = 0.0;
-        for (int j = 1; j <= 50; j=j+1) { // Inner loop for the second number
+        for (int j = 1; j <= 1000; j=j+1) { // Inner loop for the second number
         
         // Construct the file name
-            std::string fileName = "radius_of_gyration_squared_" + std::to_string(i) + "_" + std::to_string(j) + ".txt";
+            std::string folderName = "L_" + std::to_string(i) + "/j_" + std::to_string(j);
+            std::string fileName = folderName+"/radius_of_gyration_squared_" + std::to_string(i) + "_" + std::to_string(j) + ".txt";
 
 	    std::ifstream inputFile(fileName); // Open the file
 	    if (!inputFile) {
@@ -65,7 +66,7 @@ int main() {
     std::ofstream outputFile("means_output.txt");
     if (outputFile) {
         // Write the header
-        outputFile << "iter\tMeans\n";
+        //outputFile << "iter\tMeans\n";
         for (size_t i = 0; i < means_final.size(); ++i) {
             outputFile << iter[i] <<"\t" << means_final[i] << "\n";
         }

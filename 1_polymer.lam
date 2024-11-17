@@ -7,7 +7,7 @@
 ###
 
 units lj                 # use lennard-jones (i.e. dimensionless) units
-atom_style angle         # atoms with bonds and angles
+atom_style bond         # atoms with bonds and angles
 
 boundary p p p           # all boundaries are periodic
 
@@ -17,12 +17,12 @@ boundary p p p           # all boundaries are periodic
 neighbor 1.9 bin
 neigh_modify every 1 delay 1 check yes 
 
-variable file_name equal 10  # 10, 20, ..., 100 atoms
-variable ensemble equal 5    #1, 2, 3, ..... 50 atoms
+variable file_name equal 100  # 10, 20, ..., 100 atoms
+variable ensemble equal 50    #1, 2, 3, ..... 50 atoms
 ### 
 # READ "start" data file 
 ###
-read_data polymer_data_${file_name}_${ensemble}.txt 
+read_data ../../initial_config/polymer_data_${file_name}_${ensemble}.txt 
 
 ### 
 # Reset timestep 
@@ -40,8 +40,8 @@ group all type 1  #(atom type 1 is group 'all')
 ###
 
 ## angles
-angle_style  cosine
-angle_coeff   1  20.0
+#angle_style  cosine
+#angle_coeff   1  20.0
 # this choice gives a polymer with the same persistence length as DNA
 
 ## Between bonded atoms
@@ -62,7 +62,7 @@ pair_style     soft 1.12246152962189
 #    * cutoff
 pair_coeff * *  100.0 1.12246152962189 
 
-#minimize 1.0e-4 1.0e-6 10000 100000
+minimize 1.0e-4 1.0e-6 10000 100000
 ###
 # Set up fixes
 ###
@@ -129,13 +129,13 @@ pair_modify shift yes        # option to ensure energy is calculated corectly
 #    * mean diameter of the two atom types
 #    * cutoff
 pair_coeff      1 1 1.0 1.0 1.12246152962189
-
+minimize 1e-4 1e-6 1000 100000
 
 ###
 # now do a longer run
 ###
  
-run 10000000
+run 1000000
 
 #write_restart restart_${file_name}.txt
 
