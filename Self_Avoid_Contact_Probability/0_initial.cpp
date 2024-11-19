@@ -9,10 +9,11 @@ int main()
  char file_name[50];
  int low=-25;
  int hi=25;
+ int base=10;
+ int j;
 
-
-  int atoms=100;
-  sprintf(file_name, "polymer_data_%d.txt", atoms);
+  int atoms=replace_atoms;
+  sprintf(file_name, "polymer_data_%d.txt", replace_j);
   FILE *f = fopen(file_name, "w");
   if (!f) {
     printf("Failed to create file: %s\n", file_name);
@@ -21,11 +22,11 @@ int main()
   // Write the header
   fprintf(f, "LAMMPS data file for polymer\n\n");
 
-  // Number of atoms, bonds, and angles
+  // Number of atoms, bonds
   fprintf(f, "%d atoms\n", atoms);
   fprintf(f, "%d bonds\n\n", atoms - 1);
 
-  // Number of atom types, bond types, and angle types
+  // Number of atom types, bond types
   fprintf(f, "1 atom types\n");
   fprintf(f, "1 bond types\n\n");
 

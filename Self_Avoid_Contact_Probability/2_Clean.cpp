@@ -14,8 +14,8 @@ void deleteSpecificLines(const std::string& inputFile, const std::string& output
         std::cerr << "Error: Unable to open output file for writing.\n";
         return;
     }
-    int atoms=100;
-    int check=atoms+2
+    int atoms=500;
+    int check=atoms+2;
     std::string line;
     int lineCount = 0;
 
@@ -37,9 +37,13 @@ void deleteSpecificLines(const std::string& inputFile, const std::string& output
 }
 
 int main() {
-    std::string inputFile = "trajectory.xyz"; // Replace with your input file name
-    std::string outputFile = "output.xyz"; // Replace with your output file name
+    for (int i=1; i<11; ++i){
+    std::string folderName = "L_500/j_" + std::to_string(i);
+    std::string inputFile = folderName + "/trajectory.xyz"; // Replace with your input file name
+    std::string outputFile = folderName + "/output.xyz"; // Replace with your output file name
     deleteSpecificLines(inputFile, outputFile);
+    
+    }
     return 0;
 }
 

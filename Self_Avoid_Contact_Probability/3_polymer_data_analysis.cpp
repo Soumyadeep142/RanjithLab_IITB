@@ -8,14 +8,16 @@
 #include <sstream>
 
 int main() {
-
-    std::ifstream inputFile("output.xyz");
+    for (int f=1; f<11; ++f){
+    std::string folderName = "L_500/j_" + std::to_string(f);
+    std::string fileName = folderName + "/output.xyz"; // Replace with your input file name
+    std::ifstream inputFile(fileName);
     if (!inputFile) {
         std::cerr << "Error: Could not open file!" << std::endl;
         return 1;
     }           
             
-    int N = 100;  // Set N to the desired value
+    int N = 500;  // Set N to the desired value
     std::vector<std::vector<double>> contact_ij(N, std::vector<double>(N, 0));
 
     std::vector<double> x_column;  // Store second column
@@ -29,16 +31,10 @@ int main() {
            y_column.push_back(col3);
            z_column.push_back(col4);
            }
-     std::cout<<x_column.size();
+     //std::cout<<x_column.size();
      inputFile.close(); // Close the file
-    
-
-     // Check if the file was opened successfully
-     if (!outFile) {
-        std::cerr << "Error opening the file!" << std::endl;
-        return 1;
-     }
      
+
      size_t column_size = x_column.size();
      int set=column_size/N;
      
@@ -54,17 +50,20 @@ int main() {
 		    double dist = sqrt(x_dist*x_dist+y_dist*y_dist+z_dist*z_dist);
 		    if (dist<2.5){contact_ij[i][j]++;}
 	   }
-	}	  
-     std::ofstream outputFile("contact_output.txt");
+	}
+     }
+     std::string folderName2 = "L_500/j_" + std::to_string(f);
+     std::string fileName2 = folderName2 + "/contact_output.xyz"; // Replace with your input file name
+     std::ofstream outputFile(fileName2);
 
     // Iterate over the array and print i, j, and contact_ij[i][j] to the file
       for (int i = 0; i < N; ++i) {
         for (int j = 0; j < N; ++j) {
-            outputFile << i+1 << " " << j+1 << " " << contact_ij[i][j]/set << std::endl;    	   
+            outputFile << i+1 << " " << j+1 << " " << contact_ij[i][j]/set<<" "<<abs(i-j) << std::endl;    	   
 	   }
     }
-
     }
+    
     return 0;
 }
 
