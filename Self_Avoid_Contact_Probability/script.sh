@@ -1,11 +1,36 @@
-sed -i "s/int atoms=100/int atoms=500/g" 0_initial.cpp
-sed -i "s/variable file_name equal 100/variable file_name equal 500/g" 1_polymer.lam
-sed -i "s/int atoms=100/int atoms=500/g" 2_Clean.cpp
-sed -i "s/int N=100/int N=500/g" 3_polymer_data_analysis.cpp
-g++ 0_initial.cpp -o ini.x
-./ini.x
-./../lammps-29Aug2024/src/lmp_soumya -in 1_polymer.lam
-g++ 2_Clean.cpp -o clean.x
-./clean.x
-g++ 3_polymer_data_analysis.cpp -o ./data.x
-./data.x
+rm -r L_*
+
+running_jobs=0
+max_jobs=32
+for L in 500 # Generate numbers from 10 to 100 with a step of 10
+do
+
+mkdir L_${L}
+cd L_${L}
+for j in {1..10}
+do
+echo ${L} ${j}
+mkdir j_${j}
+cd j_${j}
+
+
+cp ../../0_initial.cpp ./
+sed -i "s/replace_atoms/${L}/g" 0_initial.cpp
+sed -i "s/replace_j/${j}/g" 0_initial.cpp 
+g++ 0_initial.cpp
+./a.out
+
+
+while [ $running_jobs -ge $max_jobs ]; do
+sleep 0.1
+running_jobs=$(ps -ef | grep -c "[l]mp_soumya")
+done
+cp ../../1_polymer.lam run_${L}_${j}.lam
+sed -i "s/variable file_name equal replace_length/variable file_name equal ${L}/g" run_${L}_${j}.lam
+sed -i "s/variable ensemble equal replace_ensemble/variable ensemble equal ${j}/g" run_${L}_${j}.lam
+nohup ./../../../lammps-29Aug2024/src/lmp_soumya -in run_${L}_${j}.lam&
+((running_jobs++))
+cd ..
+done
+cd ..
+done
