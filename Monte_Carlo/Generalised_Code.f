@@ -77,8 +77,7 @@
       
       stop
       end
-cend program monte_carlo_N_pars
-
+      
 ! Subroutine to compute total energy
       subroutine ce(x, y, z, N, k, r0, e, sig, L, Es, Et)
       implicit double precision(a-h, o-z)
