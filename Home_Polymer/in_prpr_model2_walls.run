@@ -1,0 +1,208 @@
+# -*- lammps -*-
+###
+# Box and units  (use LJ units and periodic boundaries)
+###
+#variable prpr equal 10 #   ### SET FROM COMMAND LINE ### the value of the energy epsilon_HH
+#variable prpo equal 20 #   ### SET FROM COMMAND LINE ### the value of the energy epsilon_HC
+#variable runnumber equal 1 #  ### SET FROM COMMAND LINE ### an index to identify independent runs 
+variable skin equal 0.4  # Sets the neighbor list skin distance (used to expand the cutoff radius).
+variable every equal 5 # Determines how often the neighbor list is updated
+
+units lj
+
+atom_style angle 
+
+boundary p p p
+
+###
+# Pair interactions require lists of neighbours to be calculated
+###
+#neighbor 1.9 bin
+#neigh_modify every 1 delay 1 check yes
+neighbor ${skin} bin
+neigh_modify every ${every} delay ${every} check yes
+
+variable file_name equal 700  # 10, 20, ..., 100 atoms
+variable ensemble equal 1    #1, 2, 3, ..... 50 atoms
+
+### READ "start" data file ###
+read_data initial_config/polymer_data_${file_name}_${ensemble}.txt
+#read_restart restart_prpr_${prpr}_prpo_${prpo}_repeat_${runnumber}
+######################
+
+
+
+###
+# Define groups (atom type 1 is group 'all')
+###
+group all type 1  # Determines how often the neighbor list is updated
+#group dna type 1 #Specifically assigns atom type 1 to DNA.
+group prots type 1 #Includes proteins (types 2–5).
+
+###################################################################
+# Stiffness term
+#
+# E = K * (1+cos(theta)), K>0
+#
+angle_style   cosine 
+angle_coeff   1 4.0
+
+###################################################################
+
+###################################################################
+# Pair interaction between non-bonded atoms
+pair_style     lj/cut 1.12246152962189 
+pair_modify     shift yes
+
+# types 1 and 6 are chromatin, size 1 and correlationof velocity
+pair_coeff * *  1 1.0 1.12246152962189
+
+# types 2-5 are proteins size 0.5
+#pair_coeff 2*5 2*5  1.0 0.5 0.561230764810945
+
+#pair_coeff 1 2*5  1.0 0.75 0.841846147216418
+
+#neigh_modify exclude molecule/intra prots
+
+###################################################################
+# Pair interaction between bonded atoms
+#bond_style fene 
+#special_bonds fene #<=== I M P O R T A N T (new command)
+#bond_coeff   1  30.0   1.6   1.0   1.0
+
+
+
+bond_style   harmonic 
+special_bonds lj 0 1 1 #<=== I M P O R T A N T prevents LJ from being counted twice
+# For style harmonic, specify:
+#   * bond type
+#   * K (energy/distance^2) 
+#   * R0 (distance)
+bond_coeff   1   90.0   1.1 
+
+
+###################################################
+###
+# Set up fixes
+###
+#include ./dilute_1000DNA_1000prot_new_model2_walls/seed_1.dat  # Load a seed for the Langevin integrator from a file
+#include /home/cbrackle/seeds/seed.${runnumber}
+#include /home/cbrackle/work/seeds/seed.${runnumber}
+variable seed equal 54651*${file_name}*${ensemble} # a seed for the thermostat
+variable seed2 equal 2*${seed}+1234
+
+#fix 1 dna nve   ###NVE ensemble
+#fix 2 dna langevin   1.0 1.0 0.5  ${seed}
+#fix 3 prots rigid molecule langevin/rotation 1.0 1.0 0.5 0.15 ${seed2}
+
+fix 1 all nve                             # NVE integrator
+fix 2 all langevin   1.0 1.0 1.0 ${seed}  # langevin thermostat
+
+###################################################
+
+###
+# Output
+###
+variable t equal step
+variable cbtemp equal temp
+variable cbepair equal epair
+variable cbemol equal emol
+variable cbebond equal ebond
+variable cbeangle equal eangle
+
+##### Sample thermodynamic info  (temperature, energy, pressure, etc.) #####
+thermo 20000 #00
+thermo_style   custom   step  temp  epair 
+############################################################################
+
+###
+# Set up walls 
+###
+
+#group wallgroup type 2
+#awk 'BEGIN{for (i=1;i<=1000;i+=6) {a=a " " i};print a}'
+#group wallgroup id 1 7 13 19 25 31 37 43 49 55 61 67 73 79 85 91 97 103 109 115 121 127 133 139 145 151 157 163 169 175 181 187 193 199 205 211 217 223 229 235 241 247 253 259 265 271 277 283 289 295 301 307 313 319 325 331 337 343 349 355 361 367 373 379 385 391 397 403 409 415 421 427 433 439 445 451 457 463 469 475 481 487 493 499 505 511 517 523 529 535 541 547 553 559 565 571 577 583 589 595 601 607 613 619 625 631 637 643 649 655 661 667 673 679 685 691 697 703 709 715 721 727 733 739 745 751 757 763 769 775 781 787 793 799 805 811 817 823 829 835 841 847 853 859 865 871 877 883 889 895 901 907 913 919 925 931 937 943 949 955 961 967 973 979 985 991 997
+
+#fix wxhi wallgroup indent 20.0 plane x 17.5 hi
+#fix wyhi wallgroup indent 20.0 plane y 17.5 hi
+#fix wzhi wallgroup indent 20.0 plane z 17.5 hi
+#fix wxlo wallgroup indent 20.0 plane x -17.5 lo
+#fix wylo wallgroup indent 20.0 plane y -17.5 lo
+#fix wzlo wallgroup indent 20.0 plane z -17.5 lo
+
+###
+# set timestep of integrator
+###
+reset_timestep 0
+timestep 0.001
+# note this is smaller than usual - this is needed because we have proteins 
+#                                   with size < 1
+
+
+#pair_style hybrid lj/cut 1.12246152962189 morse 1.0 
+#pair_modify shift yes
+#neigh_modify exclude molecule/intra prots
+#pair_coeff 2*5 2*5 lj/cut 1.0 0.5 0.561230764810945
+
+# lj/cut parameters : epsilon, sigma, rcut
+# morse parameters  : epsilon, alpha, sigma, rcut
+
+# types 1 and 6 are chromatin, size 1
+#pair_coeff 1 1 lj/cut 1.0 1.0 1.12246152962189
+
+# types 2-5 are proteins size 0.5
+#pair_coeff 2*5 2*5 lj/cut 1.0 0.5 0.561230764810945
+
+#pair_coeff 1 2*5 lj/cut 1.0 0.75 0.841846147216418
+
+# type 3 are hinges
+# type 5 are NTEs
+# hinges bind to NTEs
+
+
+## Version 2 -- broad interaction -> however many NTEs fit round the hinge
+#pair_coeff 3 5 lj/cut ${prpr} 0.5 1.0
+#pair_coeff 3 5 morse ${prpr} 0.5 0.0 1.3
+##
+
+# type 4 are CDs and bind H3K9me3 via a morse potential
+#pair_coeff 1 4 morse ${prpo} 5.0 0.0 0.9 
+
+# exclude 2-5 interaction
+#neigh_modify exclude type 2 5
+
+# NTE-polymer interaction
+# Have type 5 excude with size 0.5
+#pair_coeff 1 5 lj/cut 1.0 0.5 0.561230764810945
+
+# hinges -polymer interaction
+# Have type 3 excude with size 0.5
+#pair_coeff 1 3 lj/cut 1.0 0.5 0.561230764810945
+
+
+##############
+## before starting dumping run for 1.25 million steps
+## to ensure we really do have an equilibrium configuration
+
+## increase time step as much as possible
+timestep 0.004  # so 1.25 million of these steps is like 5 million
+## do the run
+minimize 1e-4 1e-6 1000 100000
+run 1250000
+
+
+##############
+## Now do the main production run of 5 million steps
+## Dumping every 10^5 steps
+
+reset_timestep 0
+timestep 0.001
+
+#dump mydump all atom 100000 dump.10e5_prpr${prpr}_prpo${prpo}.${runnumber}
+
+dump DUMPXYZ all xyz 1000 out.xyz
+
+run 500000
+
+write_restart restart_file.restart
+
